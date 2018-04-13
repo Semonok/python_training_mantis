@@ -1,7 +1,5 @@
 from selenium import webdriver
 from fixture.session import SessionHelper
-from fixture.group_managment import GroupHelper
-from fixture.contact_managment import ContactHelper
 
 
 class Application:
@@ -16,8 +14,6 @@ class Application:
         else:
             raise ValueError("Unrecognized browser %s" % browser)
         self.session = SessionHelper(self)
-        self.group_managment = GroupHelper(self)
-        self.contact_managment = ContactHelper(self)
         self.base_url = base_url
 
     def is_valid(self):

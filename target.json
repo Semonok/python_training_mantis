@@ -1,17 +1,18 @@
 {
   "web":
   {
-    "username":"admin",
-    "password":"secret",
-    "baseUrl":"http://localhost/addressbook/",
+    "baseUrl":"http://localhost/mantisbt-2.13.1/",
     "browser":"chrome"
-  }
-  ,
-  "db":
+  },
+  "webadmin":
   {
-    "host":"localhost",
-    "database":"addressbook",
-    "user":"root",
-    "password":""
+    "username":"administrator",
+    "password":"root"
+  },
+  "ftp":
+  {
+    "host": "localhost",
+    "username": "mantis",
+    "password": "mantis"
   }
 }

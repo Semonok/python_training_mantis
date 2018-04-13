@@ -3,6 +3,7 @@ import json
 import os.path
 import importlib
 import jsonpickle
+import ftputil
 from fixture.application import Application
 
 fixture = None
@@ -19,12 +20,11 @@ def load_config(file):
 
 
 @pytest.fixture(scope="session")
-def app(request):
+def app(request, config):
     global fixture
-    web_config = load_config(request.config.getoption('--target'))["web"]
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=web_config["browser"], base_url=web_config["baseUrl"])
-    fixture.session.login(username=web_config["username"], password=web_config["password"])
+        fixture = Application(browser=config["web"]["browser"], base_url=config["web"]["baseUrl"])
+    #fixture.session.login(username=web_config["username"], password=web_config["password"])
     return fixture
 
 
@@ -44,6 +44,36 @@ def db(request):
         dbfixture.destroy()
     request.addfinalizer(final)
     return dbfixture
+
+
+@pytest.fixture(scope="session")
+def config(request):
+    return load_config(request.config.getoption('--target'))
+
+
+@pytest.fixture(scope="session", autouse="True")
+def configure_server(request, config):
+    install_server_configuration(config["ftp"]["host"], config["ftp"]["username"], config["ftp"]["password"])
+    def fin():
+        restore_server_configuration(config["ftp"]["host"], config["ftp"]["username"], config["ftp"]["password"])
+    request.addfinalizer(fin)
+
+
+def install_server_configuration(host, username, password):
+    with ftputil.FTPHost(host, username, password) as remote:
+        if remote.path.isfile("1config_inc.php"):
+            remote.remove("1config_inc.php")
+        elif remote.path.isfile("config_inc.php"):
+            remote.rename("config_inc.php", "1config_inc.php")
+        remote.upload(os.path.join(os.path.dirname(__file__),"resources/config_inc.php"), "config_inc.php")
+
+def restore_server_configuration(host, username, password):
+    with ftputil.FTPHost(host, username, password) as remote:
+        if remote.path.isfile("1config_inc.php"):
+            if remote.path.isfile("config_inc.php"):
+                remote.remove("config_inc.php")
+            remote.rename("1config_inc.php", "config_inc.php")
+
 
 
 @pytest.fixture
